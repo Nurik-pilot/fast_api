@@ -1,0 +1,23 @@
+[flake8]
+ignore = C819,PT013,B008,A005
+exclude = db/versions/*.py,db/env.py
+
+
+max-line-length = 69
+max-doc-length = 69
+
+max-complexity = 3
+
+hang-closing = False
+format = default
+indent-size = 4
+show-source = True
+statistics = True
+
+jobs = 4
+
+no-accept-encodings = True
+
+max-cognitive-complexity = 3
+
+max-annotations-complexity = 3

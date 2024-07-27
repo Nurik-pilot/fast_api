@@ -1,0 +1,21 @@
+{
+  "models" : [
+    [
+      "faas_users",
+      "faas_user_snapshots"
+    ],
+    [
+      "faas_phones",
+      "faas_phone_snapshots"
+    ],
+    [
+      "faas_emails",
+      "faas_email_snapshots"
+    ],
+    [
+      "domain_configurations",
+      "domain_configuration_snapshots"
+    ]
+  ]
+}
+

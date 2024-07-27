@@ -1,0 +1,109 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16.2-alpine3.19
+    command: "
+      -c fsync=off
+      -c synchronous_commit=off
+      -c full_page_writes=off
+      -c max_wal_size=4096
+      -c checkpoint_timeout=86400
+      -c shared_buffers=1GB
+      -c work_mem=1GB
+    "
+    environment:
+      POSTGRES_DB: "db"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "pass"
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [
+        "CMD", "pg_isready",
+        "--username=user",
+        "--dbname=db",
+        "--host=127.0.0.1",
+        "--port=5432",
+      ]
+      interval: 4s
+      timeout: 4s
+      retries: 8
+      start_period: 4s
+
+  minio:
+    container_name: minio
+    image: bitnami/minio:2024.4.6
+    environment:
+      MINIO_ROOT_USER: "S3_ACCESS_KEY_ID"
+      MINIO_ROOT_PASSWORD: "S3_SECRET_ACCESS_KEY"
+      MINIO_DEFAULT_BUCKETS: "seed"
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: [
+        "CMD", "mc", "ready", "local",
+      ]
+      interval: 4s
+      timeout: 4s
+      retries: 8
+      start_period: 4s
+
+  rabbitmq:
+    container_name: rabbitmq
+    image: rabbitmq:3.13.1-alpine
+    environment:
+      RABBITMQ_DEFAULT_VHOST: "vhost"
+      RABBITMQ_DEFAULT_USER: "user"
+      RABBITMQ_DEFAULT_PASS: "pass"
+    healthcheck:
+      test: [
+        "CMD",
+        "rabbitmq-diagnostics",
+        "ping",
+      ]
+      interval: 4s
+      timeout: 4s
+      retries: 8
+      start_period: 4s
+
+  redis:
+    container_name: redis
+    image: redis:7.2.4-alpine3.19
+    command: "
+      redis-server --save ''
+      --appendonly no
+    "
+    healthcheck:
+      test: [
+        "CMD", "redis-cli", "ping",
+      ]
+      interval: 4s
+      timeout: 4s
+      retries: 8
+      start_period: 4s
+
+  fastapi:
+    container_name: fastapi
+    build: ./
+    volumes:
+      - ./src:/src:rw
+      - ./.env:/src/core/.env
+    environment:
+      PROCESS: "DEV_FASTAPI"
+    ports:
+      - "8000:8000"
+
+  celery:
+    container_name: celery
+    build: ./
+    volumes:
+      - ./src:/src:rw
+      - ./.env:/src/core/.env
+    environment:
+      PROCESS: "DEV_CELERY"
+    depends_on:
+      - postgres
+      - rabbitmq
+      - redis
+      - minio

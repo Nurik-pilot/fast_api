@@ -1,0 +1,11 @@
+fail_fast: true
+
+repos:
+  - repo: local
+    hooks:
+      - id: lint
+        name: lint
+        files: src
+        entry: "docker compose run -T --rm fastapi doit lint"
+        language: system
+        pass_filenames: false
